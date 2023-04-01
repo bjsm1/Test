@@ -1,0 +1,283 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+library(shiny)
+library(readxl)
+
+# Define UI
+ui <- fluidPage(
+  # File input
+  fileInput("file", "Upload file"),
+  # Slider for pre-post SD change calculation
+  sliderInput("cor_pre_post", "Correlation coefficient (pre-post)",
+              min = 0.5, max = 0.9, step = 0.1, value = 0.5),
+  # Slider for follow-up SD change calculation
+  sliderInput("cor_follow_up", "Correlation coefficient (follow-up)",
+              min = 0.5, max = 0.9, step = 0.1, value = 0.7),
+  # Checkbox for short-term follow-up
+  checkboxInput("short_term", "Short-term follow-up", value = FALSE),
+  # Checkbox for mid-term follow-up
+  checkboxInput("mid_term", "Mid-term follow-up", value = FALSE),
+  # Checkbox for long-term follow-up
+  checkboxInput("long_term", "Long-term follow-up", value = FALSE),
+  # Output table
+  tableOutput("output"),
+  # Download button
+  downloadButton("download", "Download")
+)
+
+# Define server logic
+server <- function(input, output) {
+  
+  data_input <- reactive({
+    req(input$file) # require that the file has been uploaded
+    inFile <- input$file
+    df <- read_excel(inFile$datapath)
+    df
+  })
+  
+  output$output <- renderTable({
+    data_input()
+  })
+  
+  output$download <- downloadHandler(
+    filename = function() {
+      paste("data-", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(data_input(), file, row.names = FALSE)
+    }
+  )
+  
+  observe({
+    df <- data_input()
+    colnames <- names(df)
+    
+    # Define variable names based on column headers
+    study_label <- "Study_label"
+    n_int <- "n_int"
+    n_con <- "n_con"
+    outcome_measure <- "Outcome Measure"
+    int_pre_mean <- "int_pre_mean"
+    int_pre_sd <- "int_pre_SD"
+    int_post_mean <- "int_post_mean"
+    int_post_sd <- "int_post_sd"
+    con_pre_mean <- "con_pre_mean"
+    con_pre_sd <- "con_pre_sd"
+    con_post_mean <- "con_post_mean"
+    con_post_sd <- "con_post_sd"
+    int_SFU_mean <- "int_SFU_mean"
+    int_SFU_sd <- "int_SFU_SD"
+    int_MFU_mean <- "int_MFU_mean"
+    int_MFU_sd <- "int_MFU_SD"
+    int_LFU_mean <- "int_LFU_mean"
+    int_LFU_sd <- "int_LFU_SD"
+    con_SFU_mean <- "con_SFU_mean"
+    con_SFU_sd <- "con_SFU_SD"
+    con_MFU_mean <- "con_MFU_mean"
+    con_MFU_sd <- "con_MFU_SD"
+    con_LFU_mean <- "con_LFU_mean"
+    con_LFU_sd <- "con_LFU_SD"
+
+      # Update variable names based on column headers
+      study_label <- colnames(df)[which(colnames(df) == study_label)]
+      n_int <- colnames(df)[which(colnames(df) == n_int)]
+      n_con <- colnames(df)[which(colnames(df) == n_con)]
+      outcome_measure <- colnames(df)[which(colnames(df) == outcome_measure)]
+      int_pre_mean <- colnames(df)[which(colnames(df) == int_pre_mean)]
+      int_pre_sd <- colnames(df)[which(colnames(df) == int_pre_sd)]
+      int_post_mean <- colnames(df)[which(colnames(df) == int_post_mean)]
+      int_post_sd <- colnames(df)[which(colnames(df) == int_post_sd)]
+      con_pre_mean <- colnames(df)[which(colnames(df) == con_pre_mean)]
+      con_pre_sd <- colnames(df)[which(colnames(df) == con_pre_sd)]
+      con_post_mean <- colnames(df)[which(colnames(df) == con_post_mean)]
+      con_post_sd <- colnames(df)[which(colnames(df) == con_post_sd)]
+      int_SFU_mean <- colnames(df)[which(colnames(df) == int_SFU_mean)]
+      int_SFU_sd <- colnames(df)[which(colnames(df) == int_SFU_sd)]
+      int_MFU_mean <- colnames(df)[which(colnames(df) == int_MFU_mean)]
+      int_MFU_sd <- colnames(df)[which(colnames(df) == int_MFU_sd)]
+      int_LFU_mean <- colnames(df)[which(colnames(df) == int_LFU_mean)]
+      int_LFU_sd <- colnames(df)[which(colnames(df) == int_LFU_sd)]
+      con_SFU_mean <- colnames(df)[which(colnames(df) == con_SFU_mean)]
+      con_SFU_sd <- colnames(df)[which(colnames(df) == con_SFU_sd)]
+      con_MFU_mean <- colnames(df)[which(colnames(df) == con_MFU_mean)]
+      con_MFU_sd <- colnames(df)[which(colnames(df) == con_MFU_sd)]
+      con_LFU_mean <- colnames(df)[which(colnames(df) == con_LFU_mean)]
+      con_LFU_sd <- colnames(df)[which(colnames(df) == con_LFU_sd)]
+      
+# Filter data based on selected follow-up checkboxes
+      # Filter data based on user inputs
+if (input$short_term) {
+  df <- df[, c(study_label, n_int, n_con, outcome_measure, int_pre_mean, int_pre_sd, int_post_mean, int_post_sd, int_SFU_mean, int_SFU_sd, con_SFU_mean, con_SFU_sd)]
+}
+if (input$mid_term) {
+  df <- df[, c(study_label, n_int, n_con, outcome_measure, int_pre_mean, int_pre_sd, int_post_mean, int_post_sd, int_MFU_mean, int_MFU_sd, con_MFU_mean, con_MFU_sd)]
+}
+if (input$long_term) {
+  df <- df[, c(study_label, n_int, n_con, outcome_measure, int_pre_mean, int_pre_sd, int_post_mean, int_post_sd, int_LFU_mean, int_LFU_sd, con_LFU_mean, con_LFU_sd)]
+}
+})
+}
+
+  # Create function to calculate mean and SD change
+  calc_change <- function(data, study_label, cor_pre_post, cor_follow_up, short_term, mid_term, long_term) {
+    
+    # Initialize a list to store the results
+    output <- list()
+    
+    # Loop through each row in the dataset
+    for (i in 1:nrow(data)) {
+             
+      # Extract the data for this row
+      row_data <- data[i, ]
+      
+      # Extract the pre- and post-treatment mean and SD for the intervention group
+      int_pre_mean <- row_data[[paste0(study_label, "_int_pre_mean")]]
+      int_post_mean <- row_data[[paste0(study_label, "_int_post_mean")]]
+      int_pre_sd <- row_data[[paste0(study_label, "_int_pre_sd")]]
+      int_post_sd <- row_data[[paste0(study_label, "_int_post_sd")]]
+      
+      # Calculate the mean and SD change for the intervention group
+      int_mean_change <- int_post_mean - int_pre_mean
+      int_sd_change <- sqrt(int_pre_sd^2 + int_post_sd^2 - (2 * cor_pre_post * int_pre_sd * int_post_sd))
+      
+      # Extract the pre- and post-control mean and SD for the Control group
+      con_pre_mean <- row_data[[paste0(study_label, "_con_pre_mean")]]
+      con_post_mean <- row_data[[paste0(study_label, "_con_post_mean")]]
+      con_pre_sd <- row_data[[paste0(study_label, "_con_pre_sd")]]
+      con_post_sd <- row_data[[paste0(study_label, "_con_post_sd")]]
+     
+       # Calculate the mean and SD change for the control group
+      con_mean_change <- con_post_mean - con_pre_mean
+      con_sd_change <- sqrt(con_pre_sd^2 + con_post_sd^2 - (2 * cor_pre_post * con_pre_sd * con_post_sd))
+      
+
+        # Calculate short-term change if requested
+      if (short_term) {
+        int_SFU_mean <- row_data[[paste0(study_label, "_int_SFU_mean")]]
+        int_SFU_sd <- row_data[[paste0(study_label, "_int_SFU_sd")]]
+        con_SFU_mean <- row_data[[paste0(study_label, "_con_SFU_mean")]]
+        con_SFU_sd <- row_data[[paste0(study_label, "_con_SFU_sd")]]
+        int_SFU_mean_change <- int_SFU_mean - int_post_mean
+        int_SFU_sd_change <- sqrt(int_post_sd^2 + int_SFU_sd^2 - (2 * cor_pre_post * int_post_sd * int_SFU_sd))
+        con_SFU_mean_change <- con_SFU_mean - con_post_mean
+        con_SFU_sd_change <- sqrt(con_post_sd^2 + con_SFU_sd^2 - (2 * cor_pre_post * con_post_sd * con_SFU_sd))
+      }
+      
+      # Calculate mid-term change if requested
+      if (mid_term) {
+        int_MFU_mean <- row_data[[paste0(study_label, "_int_MFU_mean")]]
+          int_MFU_sd <- row_data[[paste0(study_label, "_int_MFU_sd")]]
+        con_MFU_mean <- row_data[[paste0(study_label, "_con_MFU_mean")]]
+        con_MFU_sd <- row_data[[paste0(study_label,   "_con_MFU_sd")]]     
+        int_MFU_mean_change <- int_MFU_mean - int_post_mean
+        int_MFU_sd_change <- sqrt(int_post_sd^2 + int_MFU_sd^2 - (2 * cor_pre_post * int_post_sd * int_MFU_sd))
+        con_MFU_mean_change <- con_MFU_mean - con_post_mean
+        con_MFU_sd_change <- sqrt(con_post_sd^2 + con_MFU_sd^2 - (2 * cor_pre_post * con_post_sd * con_MFU_sd))
+      }
+      
+      # Calculate long-term change if requested
+      if (long_term) {
+        int_LFU_mean <- row_data[[paste0(study_label, "_int_LFU_mean")]]
+        int_LFU_sd <- row_data[[paste0(study_label, "_int_LFU_sd")]]
+        con_LFU_mean <- row_data[[paste0(study_label, "_con_LFU_mean")]]
+        con_LFU_sd <- row_data[[paste0(study_label,   "_con_LFU_sd")]]     
+        int_LFU_mean_change <- int_LFU_mean - int_post_mean
+        int_LFU_sd_change <- sqrt(int_post_sd^2 + int_LFU_sd^2 - (2 * cor_pre_post * int_post_sd * int_LFU_sd))
+        con_LFU_mean_change <- con_LFU_mean - con_post_mean
+        con_LFU_sd_change <- sqrt(con_post_sd^2 + con_LFU_sd^2 - (2 * cor_pre_post * con_post_sd * con_LFU_sd))
+      }
+    } else {
+      # If the short-term, mid-term and long-term is not requested, set the mean and SD change to NA
+      int_SFU_mean_change <- NA
+      int_SFU_sd_change <- NA
+      int_MFU_mean_change <- NA
+      int_MFU_sd_change  <- NA
+      int_LFU_mean_change <- NA
+      int_MFU_sd_change <- NA
+    }
+
+    # Add the results pre- post and short-term, mid-term and long-term change for both groups to the output list
+    output[[i]] <- list(int_mean_change = int_mean_change,
+                        int_sd_change = int_sd_change,
+                        con_mean_change = con_mean_change,
+                        con_sd_change = con_sd_change,
+                        int_SFU_mean_change = int_SFU_mean_change,
+                        int_SFU_sd_change = int_SFU_sd_change,
+                        int_MFU_mean_change = int_MFU_mean_change,
+                        int_MFU_sd_change  = int_MFU_sd_change,
+                        int_LFU_mean_change = int_LFU_mean_change,
+                        int_MFU_sd_change =  int_LFU_sd_change
+    )
+    # Add the row output to the overall output list
+    output[[i]] <- row_output
+  }
+  
+  # Return the output list
+  return(output)
+  }
+
+  # Create output table
+  output_table <- data.frame(
+    Mean_Change = c(int_mean_change, con_mean_change),
+    SD_Change = c(int_sd_change, con_sd_change)
+  )
+  
+  # Add short-term follow-up results to output table (if selected)
+  if (short_term) {
+    output_table <- rbind(output_table,
+                          c(int_SFU_mean_change, int_SFU_sd_change),
+                          c(con_SFU_mean_change, con_SFU_sd_change))
+  }
+  
+  # Add mid-term follow-up results to output table (if selected)
+  if (mid_term) {
+    output_table <- rbind(output_table,
+                          c(int_MFU_mean_change, int_MFU_sd_change),
+                          c(con_MFU_mean_change, con_MFU_sd_change))
+  }
+  
+  # Add long-term follow-up results to output table (if selected)
+  if (long_term) {
+    output_table <- rbind(output_table,
+                          c(int_LFU_mean_change, int_LFU_sd_change),
+                          c(con_LFU_mean_change, con_LFU_sd_change))
+  }
+  
+  # Return output table
+  return(output_table)
+
+
+# Define function to download output table as CSV
+outputCSV <- function() {
+  output_table <- isolate({
+    if (!is.null(data_input())) {
+      calc_change(data = data_input(),
+                  cor_pre_post = input$cor_pre_post,
+                  cor_follow_up = input$cor_follow_up,
+                  short_term = input$short_term,
+                  mid_term = input$mid_term,
+                  long_term = input$long_term)
+    }
+  })
+  output_csv <- data.frame(output_table)
+  output_csv$SD_Change <- round(output_csv$SD_Change, digits = 2)
+  output_csv$Mean_Change <- round(output_csv$Mean_Change, digits = 2)
+  write.csv(output_csv, "change_results.csv", row.names = FALSE)
+}
+
+# Define server function for download button
+shinyServer(function(input, output) {
+  observeEvent(input$download, {
+    outputCSV()
+  })
+})
+
+# Run app
+
+shinyApp(ui, server)
